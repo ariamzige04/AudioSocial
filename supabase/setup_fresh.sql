@@ -291,7 +291,6 @@ begin
 end;
 $$;
 
-grant execute on function public.register_audio_play(uuid) to authenticated;
 
 -- RPC básicas para membresía de salas. El audio real de LiveKit se configura aparte.
 create or replace function public.join_public_live_room(target_room_id uuid)
@@ -356,11 +355,6 @@ begin
 end;
 $$;
 
-grant execute on function public.join_public_live_room(uuid) to authenticated;
-grant execute on function public.join_private_live_room(uuid) to authenticated;
-grant execute on function public.join_paid_live_room(uuid) to authenticated;
-grant execute on function public.leave_live_room(uuid) to authenticated;
-grant execute on function public.invite_user_to_live_room(uuid,text) to authenticated;
 
 -- Participant count derivado de miembros activos.
 create or replace function public.refresh_live_participant_count()
@@ -388,6 +382,34 @@ $$;
 drop trigger if exists live_members_sync_count on public.live_room_members;
 create trigger live_members_sync_count after insert or update or delete on public.live_room_members
 for each row execute procedure public.refresh_live_participant_count();
+
+-- Permisos explícitos de funciones SECURITY DEFINER.
+-- Las funciones internas de triggers no deben exponerse directamente por la API.
+
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
+revoke execute on function public.sync_post_count() from public, anon, authenticated;
+revoke execute on function public.sync_like_count_and_notify() from public, anon, authenticated;
+revoke execute on function public.sync_comment_count_and_notify() from public, anon, authenticated;
+revoke execute on function public.sync_follow_counts_and_notify() from public, anon, authenticated;
+revoke execute on function public.refresh_live_participant_count() from public, anon, authenticated;
+
+-- Las RPC de la aplicación no deben ser ejecutables por usuarios anónimos.
+
+revoke execute on function public.register_audio_play(uuid) from public, anon;
+revoke execute on function public.join_public_live_room(uuid) from public, anon;
+revoke execute on function public.join_private_live_room(uuid) from public, anon;
+revoke execute on function public.join_paid_live_room(uuid) from public, anon;
+revoke execute on function public.leave_live_room(uuid) from public, anon;
+revoke execute on function public.invite_user_to_live_room(uuid, text) from public, anon;
+
+-- Las RPC anteriores sí pueden ser utilizadas por usuarios autenticados.
+
+grant execute on function public.register_audio_play(uuid) to authenticated;
+grant execute on function public.join_public_live_room(uuid) to authenticated;
+grant execute on function public.join_private_live_room(uuid) to authenticated;
+grant execute on function public.join_paid_live_room(uuid) to authenticated;
+grant execute on function public.leave_live_room(uuid) to authenticated;
+grant execute on function public.invite_user_to_live_room(uuid, text) to authenticated;
 
 -- Row Level Security.
 alter table public.profiles enable row level security;
