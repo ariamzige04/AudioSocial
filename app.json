@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "AudioSocial",
+    "slug": "audiosocial",
+    "description": "Red social de audio recuperada y limpiada desde el APK.",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/app-icon-v3.png",
+    "scheme": "audiosocial",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "com.audiosocial.app",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "AudioSocial necesita acceso al micrófono para grabar tu voz."
+      }
+    },
+    "android": {
+      "package": "com.audiosocial.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/images/brand-wave-v2.png"
+      },
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/images/favicon-v3.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/images/splash-icon-v2.png",
+          "imageWidth": 180
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "AudioSocial necesita acceso al micrófono para grabar tu voz.",
+          "recordAudioAndroid": true
+        }
+      ],
+      "expo-asset"
+    ]
+  }
+}
