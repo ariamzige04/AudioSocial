@@ -10,17 +10,44 @@ export default function SignUpScreen() {
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null);
+
+  if (confirmationEmail) {
+    return (
+      <Screen>
+        <Title>Revisa tu correo</Title>
+
+        <Body>
+          Te enviamos un enlace de confirmación a:
+        </Body>
+
+        <Body>{confirmationEmail}</Body>
+
+        <Body muted>
+          Abre el correo y confirma tu cuenta antes de iniciar sesión. Si no lo
+          encuentras, revisa también la carpeta de spam o correo no deseado.
+        </Body>
+
+        <Button
+          title="Ir a iniciar sesión"
+          onPress={() => router.replace("/(auth)/sign-in")}
+        />
+      </Screen>
+    );
+  }
 
   return (
     <Screen>
       <Title>Crea tu identidad de audio</Title>
       <Body muted>Podrás cambiar tu foto y biografía más adelante.</Body>
+
       <Field
         placeholder="Nombre"
         value={fullName}
         onChangeText={setFullName}
         maxLength={80}
       />
+
       <Field
         placeholder="Username"
         value={username}
@@ -28,6 +55,7 @@ export default function SignUpScreen() {
         autoCapitalize="none"
         maxLength={24}
       />
+
       <Field
         placeholder="Correo"
         value={email}
@@ -35,17 +63,21 @@ export default function SignUpScreen() {
         autoCapitalize="none"
         keyboardType="email-address"
       />
+
       <Field
         placeholder="Contraseña"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
+
       <Button
         title={busy ? "Creando cuenta…" : "Crear cuenta"}
         disabled={busy}
         onPress={async () => {
           const normalizedUsername = username.trim().toLowerCase();
+          const normalizedEmail = email.trim().toLowerCase();
+
           if (!/^[a-z0-9._]{3,24}$/.test(normalizedUsername)) {
             Alert.alert(
               "Username",
@@ -53,18 +85,25 @@ export default function SignUpScreen() {
             );
             return;
           }
-          if (!email.trim().includes("@"))
-            return Alert.alert("Correo", "Escribe un correo válido.");
-          if (password.length < 8)
-            return Alert.alert(
+
+          if (!normalizedEmail.includes("@")) {
+            Alert.alert("Correo", "Escribe un correo válido.");
+            return;
+          }
+
+          if (password.length < 8) {
+            Alert.alert(
               "Contraseña",
               "La contraseña debe tener al menos 8 caracteres.",
             );
+            return;
+          }
 
           setBusy(true);
+
           try {
             const { error } = await supabase.auth.signUp({
-              email: email.trim().toLowerCase(),
+              email: normalizedEmail,
               password,
               options: {
                 data: {
@@ -73,12 +112,10 @@ export default function SignUpScreen() {
                 },
               },
             });
+
             if (error) throw error;
-            Alert.alert(
-              "Revisa tu correo",
-              "Te enviamos un enlace de confirmación.",
-            );
-            router.replace("/(auth)/sign-in");
+
+            setConfirmationEmail(normalizedEmail);
           } catch (error) {
             Alert.alert(
               "Error",
